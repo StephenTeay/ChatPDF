@@ -5,3 +5,4 @@ pypdf2
 faiss-cpu 
 streamlit
 langchain-community
+asyncio
