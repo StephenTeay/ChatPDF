@@ -33,7 +33,7 @@ def get_vectorstore(text_chunks):
     return vectorstore
 
 def get_conversation_chain(vectorstore):
-    llm = ChatGoogleGenerativeAI(model="gemini-pro")
+    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
     memory = ConversationBufferMemory(
         memory_key="chat_history", 
         return_messages=True
