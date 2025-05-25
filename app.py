@@ -1,4 +1,5 @@
 import streamlit as st
+import asyncio
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
@@ -33,7 +34,17 @@ def get_vectorstore(text_chunks):
     return vectorstore
 
 def get_conversation_chain(vectorstore):
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash",
+        convert_system_message_to_human=True,
+        run_async = False
+    )
     memory = ConversationBufferMemory(
         memory_key="chat_history", 
         return_messages=True
@@ -43,8 +54,12 @@ def get_conversation_chain(vectorstore):
         retriever=vectorstore.as_retriever(),
         memory=memory
     )
-    return conversation_chain
-
+   return ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=vectorstore.as_retriever(),
+        memory=memory,
+        verbose=True
+    )
 def handle_userinput(user_question):
     if st.session_state.conversation is None:
         st.warning("Please process documents first using the sidebar!")
