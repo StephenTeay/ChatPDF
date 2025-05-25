@@ -1,5 +1,5 @@
 langchain-google-genai
-langchain==0.3.25
+langchain==0.0.208 
 python-dotenv
 pypdf2 
 faiss-cpu 
