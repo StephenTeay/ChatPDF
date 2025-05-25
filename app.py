@@ -54,12 +54,12 @@ def get_conversation_chain(vectorstore):
         retriever=vectorstore.as_retriever(),
         memory=memory
     )
-   return ConversationalRetrievalChain.from_llm(
+    return ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vectorstore.as_retriever(),
         memory=memory,
-        verbose=True
-    )
+        verbose=True)
+
 def handle_userinput(user_question):
     if st.session_state.conversation is None:
         st.warning("Please process documents first using the sidebar!")
