@@ -5,7 +5,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings  # Corrected import
 from langchain_google_genai import ChatGoogleGenerativeAI  # Corrected import
 from langchain_community.vectorstores import FAISS
-from langchain.memory import ConversationalBufferMemory
+from langchain.memory.buffer.ConversationBufferMemory import ConversationalBufferMemory
 from langchain.chains import ConversationalRetrievalChain  # Fixed spelling
 from htmlTemplates import css, bot_template, user_template
 
