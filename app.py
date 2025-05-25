@@ -2,11 +2,11 @@ import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings  # Corrected import
-from langchain_google_genai import ChatGoogleGenerativeAI  # Corrected import
+from langchain_google_genai import GeminiEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
 from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain  # Fixed spelling
+from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 
 def get_pdf_text(pdf_docs):
@@ -28,62 +28,98 @@ def get_text_chunks(text):
     return chunks
 
 def get_vectorstore(text_chunks):
-    embeddings = GeminiEmbeddings()  # Properly initialized Gemini embeddings
+    embeddings = GeminiEmbeddings()
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
 def get_conversation_chain(vectorstore):
-    llm = ChatGoogleGenerativeAI(model="gemini-pro")  # Proper Gemini model initialization
-    memory = ConversationalBufferMemory(memory_key="chat_history", return_messages=True)
+    llm = ChatGoogleGenerativeAI(model="gemini-pro")
+    memory = ConversationBufferMemory(
+        memory_key="chat_history", 
+        return_messages=True
+    )
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vectorstore.as_retriever(),
-        memory=memory  # Added missing comma in previous line
+        memory=memory
     )
     return conversation_chain
 
 def handle_userinput(user_question):
+    if st.session_state.conversation is None:
+        st.warning("Please process documents first using the sidebar!")
+        return
+    
     response = st.session_state.conversation({'question': user_question})
     st.session_state.chat_history = response['chat_history']
 
     for i, message in enumerate(st.session_state.chat_history):
         if i % 2 == 0:
-            st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+            st.write(user_template.replace(
+                "{{MSG}}", message.content), 
+                unsafe_allow_html=True)
         else:
-            st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+            st.write(bot_template.replace(
+                "{{MSG}}", message.content), 
+                unsafe_allow_html=True)
 
 def main():
     load_dotenv()
-    st.set_page_config(page_title='Chat with multiple PDFs', page_icon=':books:')
+    st.set_page_config(
+        page_title='Chat with multiple PDFs', 
+        page_icon=':books:'
+    )
     st.write(css, unsafe_allow_html=True)
 
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
-
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
     st.header("Chat with multiple PDFs :books:")
-    user_question = st.text_input("Ask a question about your Documents")
-    if user_question:
+    
+    # Question input with processing state check
+    user_question = st.text_input(
+        "Ask a question about your Documents",
+        disabled=not st.session_state.conversation
+    )
+    
+    # Handle question only if processed
+    if user_question and st.session_state.conversation:
         handle_userinput(user_question)
 
     with st.sidebar:
-        st.subheader("Your Document")
-        pdf_docs = st.file_uploader("Upload your PDFs", accept_multiple_files=True)
+        st.subheader("Your Documents")
+        pdf_docs = st.file_uploader(
+            "Upload your PDFs and click 'Process'",
+            accept_multiple_files=True
+        )
+        
         if st.button("Process"):
-            with st.spinner("Working my Magic:dancer:"):
-                # Get text
+            with st.spinner("Processing documents..."):
+                # Reset conversation state
+                st.session_state.conversation = None
+                st.session_state.chat_history = None
+                
+                # Get PDF text
                 raw_text = get_pdf_text(pdf_docs)
                 
-                # Create chunks
+                # Check if text extraction succeeded
+                if not raw_text:
+                    st.error("Failed to extract text from PDFs")
+                    return
+                
+                # Create text chunks
                 text_chunks = get_text_chunks(raw_text)
                 
                 # Create vector store
                 vectorstore = get_vectorstore(text_chunks)
-
+                
                 # Create conversation chain
                 st.session_state.conversation = get_conversation_chain(vectorstore)
+                
+                st.success("Documents processed successfully!")
+                st.toast("You can now ask questions about your documents!")
 
 if __name__ == '__main__':
     main()
