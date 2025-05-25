@@ -1,6 +1,6 @@
 langchain-google-genai
 langchain
 python-dotenv
-pypdf 
+pypdf2 
 faiss-cpu 
 streamlit
