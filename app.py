@@ -8,6 +8,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import LLMChain
 from htmlTemplates import css, bot_template, user_template
 
 def get_pdf_text(pdf_docs):
@@ -40,8 +41,9 @@ def get_conversation_chain(vectorstore):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
-    llm = ChatGoogleGenerativeAI(
+    llm = GoogleGenerativeAI(
         model="gemini-2.0-flash",
+        temperature = 0.3,
         convert_system_message_to_human=True,
         run_async = False
     )
