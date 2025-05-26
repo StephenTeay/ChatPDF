@@ -110,7 +110,7 @@ def main():
 
     st.header("Chat with PDFs :books:")
     
-    user_question = st.chat_input("Ask about documents", disabled=not st.session_state.conversation)
+    user_question = st.chat_input("Ask about documents")
     if user_question and st.session_state.conversation:
         handle_userinput(user_question)
 
