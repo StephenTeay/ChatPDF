@@ -10,6 +10,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
 from htmlTemplates import css, bot_template, user_template
+os.environ["LANGCHAIN_ALLOW_UNINSTALLED_PACKAGES"] = "1"
 
 def get_pdf_text(pdf_docs):
     """Extracts text from PDF documents"""
