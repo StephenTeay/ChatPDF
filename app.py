@@ -79,7 +79,7 @@ if st.button("Process"):
         raw_text = get_pdf_text(pdf_docs)
         if not raw_text.strip():
             st.error("No text content found in PDFs. Scanned documents?")
-            return
+            
             
         # Create and validate text chunks
         text_chunks = get_text_chunks(raw_text)
