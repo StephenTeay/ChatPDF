@@ -1,19 +1,18 @@
 import streamlit as st
 from dotenv import load_dotenv
 import os
+import nest_asyncio
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_google_genai import GoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
 from htmlTemplates import css, bot_template, user_template
-os.environ["LANGCHAIN_ALLOW_UNINSTALLED_PACKAGES"] = "1"
 
 def get_pdf_text(pdf_docs):
-    """Extracts text from PDF documents"""
     text = ""
     for pdf in pdf_docs:
         pdf_reader = PdfReader(pdf)
@@ -22,7 +21,6 @@ def get_pdf_text(pdf_docs):
     return text
 
 def get_text_chunks(text):
-    """Splits text into chunks with validation"""
     if not text.strip():
         return []
     
@@ -35,9 +33,8 @@ def get_text_chunks(text):
     return [chunk for chunk in text_splitter.split_text(text) if chunk.strip()]
 
 def get_vectorstore(text_chunks):
-    """Creates FAISS vector store with batch processing"""
     if not text_chunks:
-        raise ValueError("No valid text chunks provided for embedding")
+        raise ValueError("No valid text chunks provided")
     
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
     batch_size = 100
@@ -57,18 +54,16 @@ def get_vectorstore(text_chunks):
     return vectorstore
 
 def get_conversation_chain(vectorstore):
-    """Creates conversation chain with memory and prompt template"""
-    llm = GoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        temperature=0.3
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-pro",
+        temperature=0.3,
+        convert_system_message_to_human=True
     )
     
     qa_prompt = PromptTemplate(
-        template="""Use the following context to answer the question. 
-        If you don't know the answer, just say you don't know. 
-        Context: {context}
+        template="""Use this context: {context}
         Question: {question}
-        Helpful Answer:""",
+        If unsure, say you don't know. Answer:""",
         input_variables=["context", "question"]
     )
     
@@ -86,9 +81,8 @@ def get_conversation_chain(vectorstore):
     )
 
 def handle_userinput(user_question):
-    """Handles user questions and displays chat history"""
-    if st.session_state.conversation is None:
-        st.warning("Please process documents first using the sidebar!")
+    if not st.session_state.conversation:
+        st.warning("Process documents first!")
         return
     
     response = st.session_state.conversation({"question": user_question})
@@ -99,9 +93,9 @@ def handle_userinput(user_question):
         st.write(template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
 
 def main():
-    # Initialize page config FIRST
+    nest_asyncio.apply()  # Critical async fix
     st.set_page_config(
-        page_title='Chat with multiple PDFs',
+        page_title='PDF Chat',
         page_icon=':books:',
         layout="wide"
     )
@@ -109,56 +103,42 @@ def main():
     load_dotenv()
     st.write(css, unsafe_allow_html=True)
 
-    # Initialize session state
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
-    st.header("Chat with multiple PDFs :books:")
+    st.header("Chat with PDFs :books:")
     
-    # Chat interface
-    user_question = st.chat_input(
-        "Ask a question about your documents",
-        disabled=not st.session_state.conversation
-    )
+    user_question = st.chat_input("Ask about documents", disabled=not st.session_state.conversation)
     if user_question and st.session_state.conversation:
         handle_userinput(user_question)
 
-    # Document processing sidebar
     with st.sidebar:
-        st.subheader("Your Documents")
-        pdf_docs = st.file_uploader(
-            "Upload PDF files",
-            type="pdf",
-            accept_multiple_files=True
-        )
+        st.subheader("Your PDFs")
+        pdf_docs = st.file_uploader("Upload PDFs", type="pdf", accept_multiple_files=True)
         
-        if st.button("Process Documents"):
-            with st.spinner("Analyzing documents..."):
+        if st.button("Process"):
+            with st.spinner("Processing..."):
                 try:
-                    # Reset states
                     st.session_state.conversation = None
                     st.session_state.chat_history = None
                     
-                    # Process documents
                     raw_text = get_pdf_text(pdf_docs)
                     if not raw_text.strip():
-                        st.error("No text content found in PDFs")
+                        st.error("No text found")
                         return
                     
                     text_chunks = get_text_chunks(raw_text)
                     if not text_chunks:
-                        st.error("Failed to create valid text chunks")
+                        st.error("No valid chunks")
                         return
                     
                     vectorstore = get_vectorstore(text_chunks)
                     st.session_state.conversation = get_conversation_chain(vectorstore)
-                    
-                    st.success("Documents processed successfully!")
-                    st.balloons()
+                    st.success("Ready for questions!")
                 except Exception as e:
-                    st.error(f"Error processing documents: {str(e)}")
+                    st.error(f"Error: {str(e)}")
 
 if __name__ == '__main__':
     main()
