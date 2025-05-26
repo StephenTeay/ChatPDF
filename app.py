@@ -30,7 +30,7 @@ def get_text_chunks(text):
 
 def get_vectorstore(text_chunks):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
-    vectorstore = FAISS.from_text(texts=[],embedding = embeddings)
+    vectorstore = FAISS.from_texts(texts=[],embedding = embeddings)
     batch_size = 100
     for i in range(0,len(text_chunks), batch_size):
         batch_chunks = text_chunks[i:i+batch_size]
