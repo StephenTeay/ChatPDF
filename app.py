@@ -29,14 +29,75 @@ def get_text_chunks(text):
     return text_splitter.split_text(text)
 
 def get_vectorstore(text_chunks):
+    """Handle empty chunks and batch processing for Gemini embeddings"""
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
-    vectorstore = FAISS.from_texts(texts=[],embedding = embeddings)
+    
+    # Validate we have text chunks to process
+    if not text_chunks or len(text_chunks) == 0:
+        raise ValueError("No text chunks provided for embedding")
+
+    # Process in batches of 100 with empty chunk validation
     batch_size = 100
-    for i in range(0,len(text_chunks), batch_size):
-        batch_chunks = text_chunks[i:i+batch_size]
-        batch_embeddings = embeddings.embed_documents(batch_chunks)
-        vectorstore.add_embeddings(text_embeddings = list(zip(batch_chunks, batch_embeddings)))
+    vectorstore = None
+    valid_chunks = [chunk for chunk in text_chunks if chunk.strip()]
+
+    for i in range(0, len(valid_chunks), batch_size):
+        batch = valid_chunks[i:i+batch_size]
+        if not batch:  # Skip empty final batches
+            continue
+            
+        # Create or extend FAISS index
+        if vectorstore is None:
+            vectorstore = FAISS.from_texts(batch, embedding=embeddings)
+        else:
+            batch_store = FAISS.from_texts(batch, embedding=embeddings)
+            vectorstore.merge_from(batch_store)
+
     return vectorstore
+
+def get_text_chunks(text):
+    """Improved chunking with content validation"""
+    if not text.strip():
+        return []
+        
+    text_splitter = CharacterTextSplitter(
+        separator='\n',
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len
+    )
+    return [chunk for chunk in text_splitter.split_text(text) if chunk.strip()]
+
+# Update the document processing section
+if st.button("Process"):
+    with st.spinner("Processing documents..."):
+        # Reset states
+        st.session_state.conversation = None
+        st.session_state.chat_history = None
+        
+        # Get PDF text with validation
+        raw_text = get_pdf_text(pdf_docs)
+        if not raw_text.strip():
+            st.error("No text content found in PDFs. Scanned documents?")
+            return
+            
+        # Create and validate text chunks
+        text_chunks = get_text_chunks(raw_text)
+        if not text_chunks:
+            st.error("Failed to create valid text chunks from document content")
+            return
+            
+        # Create vector store with batch processing
+        try:
+            vectorstore = get_vectorstore(text_chunks)
+        except ValueError as e:
+            st.error(str(e))
+            return
+            
+        # Create conversation chain
+        st.session_state.conversation = get_conversation_chain(vectorstore)
+        
+        st.success("Documents processed successfully!")
 
 def get_conversation_chain(vectorstore):
     # Initialize LLM with proper parameters
