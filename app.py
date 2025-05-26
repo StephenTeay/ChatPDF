@@ -35,7 +35,7 @@ def get_vectorstore(text_chunks):
     for i in range(0,len(text_chunks), batch_size):
         batch_chunks = text_chunks[i:i+batch_size]
         batch_embeddings = embeddings.embed_documents(batch_chunks)
-        vectorstore.add_embeddings(text_embeddings = list(zip(batch_chunks, batch_embeddings))
+        vectorstore.add_embeddings(text_embeddings = list(zip(batch_chunks, batch_embeddings)))
     return vectorstore
 
 def get_conversation_chain(vectorstore):
