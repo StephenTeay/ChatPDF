@@ -85,14 +85,14 @@ if st.button("Process"):
         text_chunks = get_text_chunks(raw_text)
         if not text_chunks:
             st.error("Failed to create valid text chunks from document content")
-            return
+            
             
         # Create vector store with batch processing
         try:
             vectorstore = get_vectorstore(text_chunks)
         except ValueError as e:
             st.error(str(e))
-            return
+            
             
         # Create conversation chain
         st.session_state.conversation = get_conversation_chain(vectorstore)
@@ -132,7 +132,7 @@ def get_conversation_chain(vectorstore):
 def handle_userinput(user_question):
     if st.session_state.conversation is None:
         st.warning("Please process documents first using the sidebar!")
-        return
+        
     
     response = st.session_state.conversation({"question": user_question})
     st.session_state.chat_history = response["chat_history"]
