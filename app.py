@@ -30,7 +30,13 @@ def get_text_chunks(text):
 
 def get_vectorstore(text_chunks):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
-    return FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+    vectorstore = FAISS.from_text(texts=[],embedding = embeddings)
+    batch_size = 100
+    for i in range(0,len(text_chunks), batch_size):
+        batch_chunks = text_chunks[i:i+batch_size]
+        batch_embeddings = embeddings.embed_documents(batch_chunks)
+        vectorstore.add_embeddings(text_embeddings = list(zip(batch_chunks, batch_embeddings))
+    return vectorstore
 
 def get_conversation_chain(vectorstore):
     # Initialize LLM with proper parameters
