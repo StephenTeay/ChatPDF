@@ -11,8 +11,8 @@ nest-asyncio
 langchain>=0.3.0,<0.4.0
 langchain-core>=0.3.0,<0.4.0
 langchain-community>=0.3.0,<0.4.0
-langchain-google-genai>=2.0.0,<3.0.0
+langchain-google-genai>=4.0.0,<5.0.0
 langchain-text-splitters>=0.3.0,<0.4.0
 
-# Google Generative AI SDK (transitive but pin explicitly for stability)
-google-generativeai
+# Google GenAI SDK — v4+ of langchain-google-genai requires google-genai, not google-generativeai
+google-genai
