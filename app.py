@@ -353,12 +353,10 @@ def main():
                         st.success(f"✅ Ready! {len(chunks)} chunks indexed from your documents.")
 
                     except ValueError as ve:
-                        st.error(str(ve))
-                    except Exception:
-                        st.error(
-                            "An unexpected error occurred during processing. "
-                            "Please check your files and try again."
-                        )
+                        st.error(f"Validation error: {str(ve)}")
+                    except Exception as e:
+                        st.error(f"Error — {type(e).__name__}: {str(e)}")
+                        st.exception(e)
 
         # Show indexed doc summary if available
         if st.session_state.conversation:
