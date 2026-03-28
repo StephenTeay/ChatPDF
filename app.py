@@ -28,11 +28,16 @@ from htmlTemplates import css, bot_template, user_template
 
 # ── Module-level init (runs once, not on every rerender) ─────────────────────
 nest_asyncio.apply()
+
+# Load secrets: Streamlit Cloud uses st.secrets; local dev uses .env
+# This bridge injects Streamlit secrets into os.environ so that
+# google-generativeai (which reads GOOGLE_API_KEY from env) works on both.
 try:
     for key, value in st.secrets.items():
         os.environ.setdefault(key, value)
 except Exception:
-    pass
+    pass  # st.secrets not available locally — fall through to load_dotenv
+
 
 # ── Constants ────────────────────────────────────────────────────────────────
 MAX_FILES       = 10
@@ -193,7 +198,7 @@ Answer:""",
 
 def get_conversation_chain(vectorstore: FAISS, temperature: float) -> ConversationalRetrievalChain:
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemini-1.5-flash",
         temperature=temperature,
         convert_system_message_to_human=True,
         streaming=True,
@@ -254,8 +259,16 @@ def handle_userinput(user_question: str):
     with st.spinner("Thinking…"):
         try:
             response = st.session_state.conversation({"question": user_question})
-        except Exception:
-            st.error("Something went wrong while generating a response. Please try again.")
+        except Exception as e:
+            err = str(e)
+            if "429" in err or "ResourceExhausted" in err or "quota" in err.lower():
+                st.error(
+                    "⚠️ **Gemini API quota exceeded.** Your free tier daily limit has been reached. "
+                    "Please try again tomorrow, or upgrade to a paid Google AI plan at "
+                    "https://ai.dev/rate-limit to increase your quota."
+                )
+            else:
+                st.error(f"Something went wrong: {type(e).__name__}: {err}")
             return
 
     answer = response.get("answer", "")
