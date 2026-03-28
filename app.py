@@ -15,7 +15,10 @@ import streamlit as st
 import pdfplumber
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader, errors as pdf_errors
-from langchain.text_splitter import CharacterTextSplitter
+try:
+    from langchain_text_splitters import CharacterTextSplitter
+except ImportError:
+    from langchain.text_splitter import CharacterTextSplitter  # legacy fallback
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
 from langchain.memory import ConversationSummaryBufferMemory
