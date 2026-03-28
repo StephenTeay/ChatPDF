@@ -11,6 +11,7 @@ langchain-core
 langchain-community
 langchain-google-genai
 langchain-text-splitters
+langchain-classic
 
 # Google Generative AI SDK (transitive but pin explicitly for stability)
 google-generativeai
