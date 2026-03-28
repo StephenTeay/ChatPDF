@@ -8,3 +8,4 @@ langchain-community
 asyncio
 nest-asyncio
 pdfplumber
+langchain-text-splitters
