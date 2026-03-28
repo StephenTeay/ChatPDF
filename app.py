@@ -150,7 +150,7 @@ def get_vectorstore(chunks: list[str], metadatas: list[dict]) -> FAISS:
         raise ValueError("No readable text was found in the uploaded PDFs.")
 
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
+        model="models/text-embedding-004",
     )
     vectorstore = None
 
