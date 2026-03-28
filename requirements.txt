@@ -7,6 +7,7 @@ nest-asyncio
 
 # LangChain ecosystem
 langchain
+langchain-core
 langchain-community
 langchain-google-genai
 langchain-text-splitters
