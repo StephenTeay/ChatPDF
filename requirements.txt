@@ -5,14 +5,15 @@ pdfplumber
 faiss-cpu
 nest-asyncio
 
-# LangChain ecosystem — pinned to 0.3.x series
-# ConversationBufferMemory lives stably in langchain.memory on this series
-# The 1.x series restructured internals and broke several memory imports
-langchain>=0.3.0,<0.4.0
-langchain-core>=0.3.0,<0.4.0
-langchain-community>=0.3.0,<0.4.0
-langchain-google-genai>=4.0.0,<5.0.0
-langchain-text-splitters>=0.3.0,<0.4.0
+# ── LangChain — all packages pinned to the same compatible series ──────────
+# langchain 0.3.x + langchain-google-genai 2.x share langchain-core 0.3.x
+# This is the only combination that installs cleanly together on Streamlit Cloud
+langchain==0.3.25
+langchain-core==0.3.62
+langchain-community==0.3.24
+langchain-google-genai==2.1.4
+langchain-text-splitters==0.3.8
 
-# Google GenAI SDK — v4+ of langchain-google-genai requires google-genai, not google-generativeai
-google-genai
+# ── Google SDK ─────────────────────────────────────────────────────────────
+# langchain-google-genai 2.x uses the OLD google-generativeai SDK (not google-genai)
+google-generativeai==0.8.5
