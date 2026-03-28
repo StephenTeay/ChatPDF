@@ -1,11 +1,15 @@
-langchain-google-genai
-langchain
-python-dotenv
-pypdf2 
-faiss-cpu 
 streamlit
-langchain-community
-asyncio
-nest-asyncio
+python-dotenv
+pypdf2
 pdfplumber
+faiss-cpu
+nest-asyncio
+
+# LangChain ecosystem
+langchain
+langchain-community
+langchain-google-genai
 langchain-text-splitters
+
+# Google Generative AI SDK (transitive but pin explicitly for stability)
+google-generativeai
