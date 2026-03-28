@@ -21,7 +21,7 @@ except ImportError:
     from langchain.text_splitter import CharacterTextSplitter  # legacy fallback
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
-from langchain.memory import ConversationBufferWindowMemory
+from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
 from htmlTemplates import css, bot_template, user_template
@@ -193,10 +193,7 @@ def get_conversation_chain(vectorstore: FAISS, temperature: float) -> Conversati
         streaming=True,
     )
 
-    # Keeps only the last k conversation turns — prevents context window
-    # blow-up on long sessions without needing a summary LLM call
-    memory = ConversationBufferWindowMemory(
-        k=5,
+    memory = ConversationBufferMemory(
         memory_key="chat_history",
         return_messages=True,
         output_key="answer",
