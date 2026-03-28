@@ -21,7 +21,10 @@ except ImportError:
     from langchain.text_splitter import CharacterTextSplitter  # legacy fallback
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
-from langchain.memory import ConversationSummaryBufferMemory
+try:
+    from langchain_community.memory import ConversationSummaryBufferMemory
+except ImportError:
+    from langchain.memory import ConversationSummaryBufferMemory  # legacy fallback
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
 from htmlTemplates import css, bot_template, user_template
