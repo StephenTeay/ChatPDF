@@ -28,7 +28,11 @@ from htmlTemplates import css, bot_template, user_template
 
 # ── Module-level init (runs once, not on every rerender) ─────────────────────
 nest_asyncio.apply()
-load_dotenv()
+try:
+    for key, value in st.secrets.items():
+        os.environ.setdefault(key, value)
+except Exception:
+    pass
 
 # ── Constants ────────────────────────────────────────────────────────────────
 MAX_FILES       = 10
