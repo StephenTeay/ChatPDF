@@ -4,7 +4,7 @@ Improvements:
   [UI]     Incremental message rendering, streaming responses, fade-in animations
   [PDF]    pdfplumber fallback for scanned PDFs, source metadata, file validation,
            password-protected PDF detection
-  [LLM]    Stronger grounding prompt, ConversationSummaryBufferMemory, temperature slider
+  [LLM]    Stronger grounding prompt, ConversationBufferWindowMemory (last 5 turns), temperature slider
   [Code]   load_dotenv at module level, file size/count guards, friendly error messages
 """
 
@@ -21,10 +21,7 @@ except ImportError:
     from langchain.text_splitter import CharacterTextSplitter  # legacy fallback
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
-try:
-    from langchain_community.memory import ConversationSummaryBufferMemory
-except ImportError:
-    from langchain.memory import ConversationSummaryBufferMemory  # legacy fallback
+from langchain.memory import ConversationBufferWindowMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
 from htmlTemplates import css, bot_template, user_template
@@ -196,11 +193,10 @@ def get_conversation_chain(vectorstore: FAISS, temperature: float) -> Conversati
         streaming=True,
     )
 
-    # SummaryBuffer keeps recent turns verbatim and summarises older ones
-    # — prevents context window blow-up on long sessions
-    memory = ConversationSummaryBufferMemory(
-        llm=llm,
-        max_token_limit=1500,
+    # Keeps only the last k conversation turns — prevents context window
+    # blow-up on long sessions without needing a summary LLM call
+    memory = ConversationBufferWindowMemory(
+        k=5,
         memory_key="chat_history",
         return_messages=True,
         output_key="answer",
