@@ -5,15 +5,12 @@ pdfplumber
 faiss-cpu
 nest-asyncio
 
-# ── LangChain — all packages pinned to the same compatible series ──────────
-# langchain 0.3.x + langchain-google-genai 2.x share langchain-core 0.3.x
-# This is the only combination that installs cleanly together on Streamlit Cloud
+# ── LangChain — pinned to exact compatible versions ────────────────────────
 langchain==0.3.25
 langchain-core==0.3.62
 langchain-community==0.3.24
 langchain-google-genai==2.1.4
 langchain-text-splitters==0.3.8
-
-# ── Google SDK ─────────────────────────────────────────────────────────────
-# langchain-google-genai 2.x uses the OLD google-generativeai SDK (not google-genai)
-google-generativeai==0.8.5
+# NOTE: do NOT pin google-generativeai separately.
+# langchain-google-genai pulls in the correct version automatically.
+# Pinning it manually causes google-ai-generativelanguage version conflicts.
