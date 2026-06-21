@@ -38,6 +38,9 @@ try:
 except Exception:
     pass  # st.secrets not available locally — fall through to load_dotenv
 
+# Load local .env into the process environment for local development
+load_dotenv()
+
 
 # ── Constants ────────────────────────────────────────────────────────────────
 MAX_FILES       = 10
@@ -254,7 +257,8 @@ def render_all_messages():
 def handle_userinput(user_question: str):
     # Store user message immediately so it renders before the bot responds
     st.session_state.chat_history.append({"role": "user", "content": user_question})
-    render_all_messages()
+    # Render just the new user message (avoid re-rendering the whole history here)
+    render_message(role="user", content=user_question)
 
     with st.spinner("Thinking…"):
         try:
@@ -285,8 +289,8 @@ def handle_userinput(user_question: str):
         {"role": "bot", "content": answer, "sources": sources}
     )
 
-    # Re-render so the new bot message appears with its sources
-    render_all_messages()
+    # Render just the new bot message (history is already shown)
+    render_message(role="bot", content=answer, sources=sources)
 
 
 # ── Main App ─────────────────────────────────────────────────────────────────
