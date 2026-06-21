@@ -198,7 +198,7 @@ Answer:""",
 
 def get_conversation_chain(vectorstore: FAISS, temperature: float) -> ConversationalRetrievalChain:
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemini-flash-latest",
         temperature=temperature,
         convert_system_message_to_human=True,
         streaming=True,
